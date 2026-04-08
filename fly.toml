@@ -1,0 +1,43 @@
+# fly.toml — Fly.io deployment config for Fynd Doctor
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "fynd-doctor"
+primary_region = "iad"          # Pick a region close to you. iad = Virginia US-East. Change with `flyctl regions add`.
+kill_signal = "SIGINT"
+kill_timeout = "30s"             # Give the crawler time to finish in-flight requests cleanly.
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  CRAWL_CONCURRENCY = "2"
+  REPORT_TTL_HOURS = "24"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false     # Keep the machine warm — no cold-start tax for visitors.
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/"
+
+# Persistent volume for reports/{id}/. Created via:
+#   flyctl volumes create cro_reports --size 1 --region iad
+# Then this mount block tells the machine where to attach it.
+[mounts]
+  source = "cro_reports"
+  destination = "/app/reports"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"               # 256mb is too tight for Next + Puppeteer + the queue.
+  cpus = 1

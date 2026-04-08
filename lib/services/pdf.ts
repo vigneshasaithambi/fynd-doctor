@@ -22,11 +22,16 @@ export async function renderReportPdf(reportId: string): Promise<Buffer> {
   }
 
   // BASE_URL is required so the PDF renderer can navigate back to the report
-  // viewer over HTTP. On Render, RENDER_EXTERNAL_URL is set automatically to
-  // the public service URL — fall through to it. Final fallback is localhost
-  // for local dev.
+  // viewer over HTTP. Fallback chain:
+  //   1. BASE_URL (explicit, set in any env)
+  //   2. RENDER_EXTERNAL_URL (auto-set by Render)
+  //   3. FLY_APP_NAME → https://<app>.fly.dev (auto-set by Fly machines)
+  //   4. localhost for local dev
   const base =
-    process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
+    process.env.BASE_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    (process.env.FLY_APP_NAME ? `https://${process.env.FLY_APP_NAME}.fly.dev` : null) ||
+    "http://localhost:3000";
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
