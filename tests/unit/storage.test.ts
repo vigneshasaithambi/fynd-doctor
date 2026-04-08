@@ -35,56 +35,55 @@ afterEach(() => {
 });
 
 describe("storage atomicity", () => {
-  it("#52 writeStatus writes a valid JSON file", () => {
-    writeStatus(TEST_ID, makeStatus());
+  it("#52 writeStatus writes a valid JSON file", async () => {
+    await writeStatus(TEST_ID, makeStatus());
     const raw = fs.readFileSync(path.join(reportDir(TEST_ID), "status.json"), "utf8");
     expect(() => JSON.parse(raw)).not.toThrow();
   });
 
-  it("#53 readStatus returns null when file missing", () => {
-    expect(readStatus("does-not-exist-id-xyz")).toBeNull();
+  it("#53 readStatus returns null when file missing", async () => {
+    expect(await readStatus("does-not-exist-id-xyz")).toBeNull();
   });
 
-  it("#54 readStatus returns null when JSON malformed", () => {
+  it("#54 readStatus returns null when JSON malformed", async () => {
     const dir = reportDir(TEST_ID);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "status.json"), "{ broken json");
-    expect(readStatus(TEST_ID)).toBeNull();
+    expect(await readStatus(TEST_ID)).toBeNull();
   });
 
-  it("#55 readStatus returns null when file is half-written", () => {
+  it("#55 readStatus returns null when file is half-written", async () => {
     const dir = reportDir(TEST_ID);
     fs.mkdirSync(dir, { recursive: true });
-    // Simulate truncated JSON
     fs.writeFileSync(path.join(dir, "status.json"), '{"id":"x","phase":3,"step":"Walking');
-    expect(readStatus(TEST_ID)).toBeNull();
+    expect(await readStatus(TEST_ID)).toBeNull();
   });
 
-  it("#56 stuck status (6+ min old, done:false) is transformed to done:true with error", () => {
+  it("#56 stuck status (6+ min old, done:false) is transformed to done:true with error", async () => {
     const old = new Date(Date.now() - 6 * 60 * 1000).toISOString();
-    writeStatus(TEST_ID, makeStatus({ updatedAt: old, done: false }));
-    const r = readStatus(TEST_ID);
+    await writeStatus(TEST_ID, makeStatus({ updatedAt: old, done: false }));
+    const r = await readStatus(TEST_ID);
     expect(r?.done).toBe(true);
     expect(r?.error).toMatch(/stuck/i);
   });
 
-  it("#57 stuck detection does NOT mutate the on-disk file", () => {
+  it("#57 stuck detection does NOT mutate the on-disk file", async () => {
     const old = new Date(Date.now() - 6 * 60 * 1000).toISOString();
-    writeStatus(TEST_ID, makeStatus({ updatedAt: old, done: false }));
-    readStatus(TEST_ID); // trigger transform
+    await writeStatus(TEST_ID, makeStatus({ updatedAt: old, done: false }));
+    await readStatus(TEST_ID);
     const raw = JSON.parse(fs.readFileSync(path.join(reportDir(TEST_ID), "status.json"), "utf8"));
-    expect(raw.done).toBe(false); // file untouched
+    expect(raw.done).toBe(false);
   });
 
-  it("#58 done:true status is returned unchanged regardless of age", () => {
+  it("#58 done:true status is returned unchanged regardless of age", async () => {
     const old = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    writeStatus(TEST_ID, makeStatus({ updatedAt: old, done: true }));
-    const r = readStatus(TEST_ID);
+    await writeStatus(TEST_ID, makeStatus({ updatedAt: old, done: true }));
+    const r = await readStatus(TEST_ID);
     expect(r?.done).toBe(true);
     expect(r?.error).toBeUndefined();
   });
 
-  it("#59 writeReport / readReport round-trip", () => {
+  it("#59 writeReport / readReport round-trip", async () => {
     const report: Report = {
       id: TEST_ID,
       url: "https://x",
@@ -98,8 +97,8 @@ describe("storage atomicity", () => {
       bucketSummary: { fixNow: [], platformLimited: [] },
       execSummary: "test",
     };
-    writeReport(TEST_ID, report);
-    const r = readReport(TEST_ID);
+    await writeReport(TEST_ID, report);
+    const r = await readReport(TEST_ID);
     expect(r?.overallScore).toBe(80);
   });
 
@@ -110,16 +109,16 @@ describe("storage atomicity", () => {
     expect(reportDir(TEST_ID).endsWith(TEST_ID)).toBe(true);
   });
 
-  it("#61 listReportIds skips non-directory entries", () => {
-    writeStatus(TEST_ID, makeStatus());
-    const ids = listReportIds();
+  it("#61 listReportIds skips non-directory entries", async () => {
+    await writeStatus(TEST_ID, makeStatus());
+    const ids = await listReportIds();
     expect(ids).toContain(TEST_ID);
   });
 
-  it("#62 deleteReport removes the directory + contents", () => {
-    writeStatus(TEST_ID, makeStatus());
+  it("#62 deleteReport removes the directory + contents", async () => {
+    await writeStatus(TEST_ID, makeStatus());
     expect(fs.existsSync(reportDir(TEST_ID))).toBe(true);
-    deleteReport(TEST_ID);
+    await deleteReport(TEST_ID);
     expect(fs.existsSync(reportDir(TEST_ID))).toBe(false);
   });
 });

@@ -18,7 +18,7 @@ export default async function ReportPage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const report = readReport(id);
+  const report = await readReport(id);
   if (!report) notFound();
 
   const isPrint = sp.print === "1";

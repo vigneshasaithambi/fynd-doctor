@@ -20,7 +20,7 @@ describe("startReportCleanup", () => {
     vi.resetModules();
 
     ensureReportDir(OLD_ID);
-    writeStatus(OLD_ID, {
+    await writeStatus(OLD_ID, {
       id: OLD_ID,
       phase: 8,
       step: "done",
@@ -30,10 +30,10 @@ describe("startReportCleanup", () => {
 
     const { startReportCleanup } = await import("@/lib/utils/cleanupReports");
     startReportCleanup();
-    // Sweep is synchronous on first call
+    // Sweep is now async — give microtasks + the sweep itself a moment.
+    await new Promise((r) => setTimeout(r, 100));
     expect(fs.existsSync(reportDir(OLD_ID))).toBe(false);
 
-    // Restore default TTL
     delete process.env.REPORT_TTL_HOURS;
   });
 
@@ -42,7 +42,7 @@ describe("startReportCleanup", () => {
     vi.resetModules();
 
     ensureReportDir(FRESH_ID);
-    writeStatus(FRESH_ID, {
+    await writeStatus(FRESH_ID, {
       id: FRESH_ID,
       phase: 8,
       step: "done",
@@ -52,6 +52,7 @@ describe("startReportCleanup", () => {
 
     const { startReportCleanup } = await import("@/lib/utils/cleanupReports");
     startReportCleanup();
+    await new Promise((r) => setTimeout(r, 100));
     expect(fs.existsSync(reportDir(FRESH_ID))).toBe(true);
   });
 

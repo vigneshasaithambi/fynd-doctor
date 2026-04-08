@@ -25,14 +25,18 @@ let running = 0;
 function rewriteQueuedPositions() {
   for (let i = 0; i < waiting.length; i++) {
     const item = waiting[i];
-    writeStatus(item.id, {
+    // Fire-and-forget — the loader will see the new position on its next poll.
+    // .catch() prevents unhandled-rejection warnings on the R2 backend.
+    void writeStatus(item.id, {
       id: item.id,
       phase: -1,
       step: `Queued (position ${i + 1})`,
       done: false,
       queuePosition: i + 1,
       updatedAt: new Date().toISOString(),
-    });
+    }).catch((e) =>
+      console.warn(`[queue] writeStatus failed for ${item.id}:`, (e as Error).message),
+    );
   }
 }
 
@@ -54,14 +58,17 @@ function pump() {
 export function enqueueCrawl(id: string, url: string): void {
   waiting.push({ id, url });
   // Stamp an initial queued status so the loader page sees it immediately.
-  writeStatus(id, {
+  // Fire-and-forget — the loader polls so a missed write self-heals.
+  void writeStatus(id, {
     id,
     phase: -1,
     step: "Queued",
     done: false,
     queuePosition: waiting.length,
     updatedAt: new Date().toISOString(),
-  });
+  }).catch((e) =>
+    console.warn(`[queue] initial writeStatus failed for ${id}:`, (e as Error).message),
+  );
   pump();
 }
 

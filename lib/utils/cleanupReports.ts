@@ -15,14 +15,14 @@ const SWEEP_INTERVAL_MS = 60 * 60 * 1000; // 1h
 
 let started = false;
 
-function sweep() {
+async function sweep() {
   const cutoff = Date.now() - TTL_MS;
-  const ids = listReportIds();
+  const ids = await listReportIds();
   let deleted = 0;
   for (const id of ids) {
-    const last = reportLastModifiedMs(id);
+    const last = await reportLastModifiedMs(id);
     if (last > 0 && last < cutoff) {
-      deleteReport(id);
+      await deleteReport(id);
       deleted += 1;
     }
   }
@@ -37,17 +37,13 @@ export function startReportCleanup() {
   if (started) return;
   started = true;
   // Run once on boot, then on a timer.
-  try {
-    sweep();
-  } catch (e) {
-    console.warn("[cleanupReports] initial sweep failed:", (e as Error).message);
-  }
+  sweep().catch((e) =>
+    console.warn("[cleanupReports] initial sweep failed:", (e as Error).message),
+  );
   const handle = setInterval(() => {
-    try {
-      sweep();
-    } catch (e) {
-      console.warn("[cleanupReports] sweep failed:", (e as Error).message);
-    }
+    sweep().catch((e) =>
+      console.warn("[cleanupReports] sweep failed:", (e as Error).message),
+    );
   }, SWEEP_INTERVAL_MS);
   // Don't keep the process alive just for the timer.
   if (typeof handle === "object" && handle && "unref" in handle) {

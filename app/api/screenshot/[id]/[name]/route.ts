@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { screenshotPath, reportDir } from "@/lib/utils/storage";
+import { readScreenshot } from "@/lib/utils/storage";
 
 export const runtime = "nodejs";
 
@@ -18,14 +16,8 @@ export async function GET(
   if (!SAFE_NAME.test(name)) {
     return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
   }
-  const p = screenshotPath(id, name);
-  // Defense in depth: ensure the resolved path is still inside the report dir.
-  const resolvedDir = path.resolve(reportDir(id));
-  if (!path.resolve(p).startsWith(resolvedDir + path.sep)) {
-    return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
-  }
-  if (!fs.existsSync(p)) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const data = fs.readFileSync(p);
+  const data = await readScreenshot(id, name);
+  if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return new NextResponse(new Uint8Array(data), {
     status: 200,
     headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" },

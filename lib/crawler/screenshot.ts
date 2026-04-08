@@ -1,23 +1,28 @@
 import type { Page } from "puppeteer";
-import path from "path";
-import { screenshotPath } from "../utils/storage";
+import { writeScreenshot } from "../utils/storage";
 
+// Captures desktop + mobile PNGs and writes them through the storage backend.
+// Returns the filename portion only (e.g. "homepage-desktop.png") which the
+// report viewer turns into a URL via /api/screenshot/<id>/<name>.
 export async function captureBoth(
   desktopPage: Page,
   mobilePage: Page,
   reportId: string,
   baseName: string,
 ): Promise<{ desktop: string; mobile: string }> {
-  const dPath = screenshotPath(reportId, `${baseName}-desktop.png`);
-  const mPath = screenshotPath(reportId, `${baseName}-mobile.png`);
-  await safeShot(desktopPage, dPath);
-  await safeShot(mobilePage, mPath);
-  return { desktop: path.basename(dPath), mobile: path.basename(mPath) };
+  const dName = `${baseName}-desktop.png`;
+  const mName = `${baseName}-mobile.png`;
+  await safeShot(desktopPage, reportId, dName);
+  await safeShot(mobilePage, reportId, mName);
+  return { desktop: dName, mobile: mName };
 }
 
-export async function safeShot(page: Page, fullPath: string) {
+async function safeShot(page: Page, reportId: string, name: string) {
   try {
-    await page.screenshot({ path: fullPath as `${string}.png`, fullPage: false });
+    // Capture into memory (no `path` arg) → forwards to the storage backend.
+    // This works against both local fs and R2 unchanged.
+    const buffer = (await page.screenshot({ fullPage: false })) as Uint8Array;
+    await writeScreenshot(reportId, name, Buffer.from(buffer));
   } catch (e) {
     console.warn("screenshot failed:", (e as Error).message);
   }

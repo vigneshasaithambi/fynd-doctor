@@ -11,7 +11,7 @@ import { runPageSpeed } from "../services/pagespeed";
 import { analyzePage } from "../services/recommendations";
 import { baymardAudit } from "../services/baymardAudit";
 import { scoreReport } from "../services/scorer";
-import { writeStatus, writeReport, screenshotPath, ensureReportDir } from "../utils/storage";
+import { writeStatus, writeReport } from "../utils/storage";
 import type { PageReport, Report, PageType, Finding, BucketSummary } from "../types";
 import { getDomain } from "../utils/validators";
 import { startReportCleanup } from "../utils/cleanupReports";
@@ -33,7 +33,6 @@ const STEPS = [
 ];
 
 export async function runCrawl(reportId: string, url: string): Promise<void> {
-  ensureReportDir(reportId);
   const domain = getDomain(url);
   const updated = (phase: number, done = false, error?: string) =>
     writeStatus(reportId, {
@@ -45,7 +44,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
       updatedAt: new Date().toISOString(),
     });
 
-  updated(0);
+  await updated(0);
   let browser: Browser | null = null;
   const pages: PageReport[] = [];
   let scorecard: Report["checkoutScorecard"];
@@ -56,7 +55,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     const mobile = await newMobilePage(browser);
 
     // Phase 0 — Homepage
-    updated(0);
+    await updated(0);
     const homeOk = await gotoSafe(desktop, url);
     await gotoSafe(mobile, url);
     const homeScreens = await captureBoth(desktop, mobile, reportId, "homepage");
@@ -71,7 +70,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     });
 
     // Phase 1 — Category
-    updated(1);
+    await updated(1);
     const catUrl = homeOk ? await findCategoryUrl(desktop) : null;
     let catReached = false;
     let catScreens: { desktop?: string; mobile?: string } = {};
@@ -91,7 +90,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
 
     // Phase 2 — PDP (spec §3.3 — collect up to 3 candidate products and try
     // ATC against each in turn; break on first success).
-    updated(2);
+    await updated(2);
     const pdpCandidates = catReached ? await findProductUrls(desktop, 3) : [];
     let pdpUrl: string | null = null;
     let pdpReached = false;
@@ -153,7 +152,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     });
 
     // Phase 3 — Cart (navigate to cart only if ATC actually succeeded above)
-    updated(3);
+    await updated(3);
     let cartReached = false;
     let cartScreens: { desktop?: string; mobile?: string } = {};
     let cartUrl: string | null = null;
@@ -180,7 +179,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     });
 
     // Phase 4 — Checkout
-    updated(4);
+    await updated(4);
     let checkoutReached = false;
     let checkoutScreens: { desktop?: string; mobile?: string } = {};
     let checkoutUrl: string | null = null;
@@ -206,7 +205,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     });
 
     // Phase 5 — PageSpeed (homepage, PDP, checkout)
-    updated(5);
+    await updated(5);
     const psiTargets: Array<{ pageType: PageType; url: string | null }> = [
       { pageType: "homepage", url },
       { pageType: "pdp", url: pdpUrl },
@@ -227,7 +226,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     // sticky/persistent UI scan (spec §5.7) on each reached page. We re-navigate
     // the desktop page to each URL because earlier phases left it on whatever
     // came last in the funnel.
-    updated(6);
+    await updated(6);
     for (const p of pages) {
       if (!p.reached || !p.url) continue;
       try {
@@ -243,7 +242,7 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
     // 1×(text+vision) since each page's text→vision pair runs concurrently
     // with the others. Each pair stays sequential because vision needs the
     // screenshot path and we preserve the existing dependency order.
-    updated(7);
+    await updated(7);
     await Promise.all(
       pages.map(async (p) => {
         if (!p.reached) return;
@@ -257,14 +256,15 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
         });
         const baymard = await baymardAudit(
           p.pageType,
-          p.screenshots.desktop ? screenshotPath(reportId, p.screenshots.desktop) : undefined,
+          reportId,
+          p.screenshots.desktop,
         );
         p.findings = [...findings, ...baymard];
       }),
     );
 
     // Phase 8 — Generate report
-    updated(8);
+    await updated(8);
     const { categoryScores, overall } = scoreReport(pages);
     const allFindings: Finding[] = pages.flatMap((p) => p.findings);
     const bucketSummary: BucketSummary = {
@@ -292,8 +292,8 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
       execSummary: buildExecSummary(domain, overall, allFindings.length, bucketSummary),
     };
 
-    writeReport(reportId, report);
-    updated(STEPS.length - 1, true);
+    await writeReport(reportId, report);
+    await updated(STEPS.length - 1, true);
   } catch (e) {
     console.error("crawl failed:", e);
     const errReport: Report = {
@@ -310,8 +310,8 @@ export async function runCrawl(reportId: string, url: string): Promise<void> {
       execSummary: "Crawl failed before completion.",
       error: (e as Error).message,
     };
-    writeReport(reportId, errReport);
-    updated(8, true, (e as Error).message);
+    await writeReport(reportId, errReport);
+    await updated(8, true, (e as Error).message);
   } finally {
     if (browser) {
       try {

@@ -51,8 +51,8 @@ describe("runCrawl orchestrator", () => {
     const id = "TEST-CRAWL-FULL-id";
     generatedIds.push(id);
     await runCrawl(id, baseUrl);
-    const report = readReport(id);
-    const status = readStatus(id);
+    const report = await readReport(id);
+    const status = await readStatus(id);
     expect(report).toBeTruthy();
     expect(report?.status).toBe("complete");
     expect(status?.done).toBe(true);
@@ -69,7 +69,7 @@ describe("runCrawl orchestrator", () => {
     const id = "TEST-CRAWL-UNREACHABLE-id";
     generatedIds.push(id);
     await runCrawl(id, "http://0.0.0.0:9");
-    const report = readReport(id);
+    const report = await readReport(id);
     // Either status: complete with notes, or status: error — both acceptable.
     // What we MUST NOT see is the process crashing.
     expect(report).toBeTruthy();

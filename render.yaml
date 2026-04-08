@@ -1,0 +1,50 @@
+# Render Blueprint — Fynd Doctor
+#
+# Free tier with Cloudflare R2 for persistent object storage. No disk on the
+# Render side (free tier doesn't allow disks); reports/screenshots/PDFs all
+# live in an R2 bucket via the S3-compatible API.
+#
+# To deploy:
+#   1. Push this repo to GitHub (already done if you cloned this).
+#   2. Create a Cloudflare account + R2 bucket (free, no card needed).
+#      See docs/DEPLOYMENT.md for the 5-step Cloudflare walkthrough.
+#   3. Sign in to render.com with the same GitHub account.
+#   4. New → Blueprint → pick this repo → Apply.
+#   5. In the Render dashboard, paste the R2 credentials into the env vars
+#      Render flagged as "sync: false" below.
+
+services:
+  - type: web
+    name: fynd-doctor
+    runtime: docker
+    plan: free                # 512 MB RAM / 0.1 CPU. Spins down after 15 min idle.
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASE_URL
+        sync: false           # Render auto-injects RENDER_EXTERNAL_URL; lib/services/pdf.ts falls through to it.
+      - key: CRAWL_CONCURRENCY
+        value: "2"
+      - key: REPORT_TTL_HOURS
+        value: "24"
+
+      # ── Storage backend ─────────────────────────────────────────────────
+      - key: STORAGE_BACKEND
+        value: r2
+      - key: R2_ACCOUNT_ID
+        sync: false           # Set in Render dashboard. From Cloudflare → R2 → Manage R2 API Tokens.
+      - key: R2_BUCKET
+        sync: false           # The bucket name you created in Cloudflare.
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+
+      # ── Optional ────────────────────────────────────────────────────────
+      - key: ANTHROPIC_API_KEY
+        sync: false           # App runs end-to-end with mocks if absent.

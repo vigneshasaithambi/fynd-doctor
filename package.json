@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.85.0",
+    "@aws-sdk/client-s3": "^3.1026.0",
     "axios": "^1.14.0",
     "next": "16.2.2",
     "puppeteer": "^24.40.0",

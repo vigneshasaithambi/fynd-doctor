@@ -1,15 +1,18 @@
 import { v4 as uuid } from "uuid";
 import type { Finding, PageType } from "../types";
-import fs from "fs";
 import { claudeVision, hasClaudeKey, mockFindingsForPage } from "./claude";
 import { BAYMARD_VISION_SYSTEM, buildBaymardUserPrompt } from "../prompts/baymardVision";
 import { guidelinesFor } from "../data/baymardGuidelines";
+import { readScreenshot } from "../utils/storage";
 
 export async function baymardAudit(
   pageType: PageType,
-  screenshotPath: string | undefined,
+  reportId: string | undefined,
+  screenshotName: string | undefined,
 ): Promise<Finding[]> {
-  if (!hasClaudeKey() || !screenshotPath || !fs.existsSync(screenshotPath)) {
+  const buf =
+    reportId && screenshotName ? await readScreenshot(reportId, screenshotName) : null;
+  if (!hasClaudeKey() || !buf) {
     // Filter mock findings to only the baymardUx category for variety
     return mockFindingsForPage(pageType)
       .filter((f) => f.category === "conversion" || f.category === "mobile")
@@ -18,7 +21,6 @@ export async function baymardAudit(
   }
   try {
     const guidelines = guidelinesFor(pageType);
-    const buf = fs.readFileSync(screenshotPath);
     const b64 = buf.toString("base64");
     const raw = await claudeVision({
       system: BAYMARD_VISION_SYSTEM,
