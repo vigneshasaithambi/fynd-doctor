@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fynd CRO Doctor
 
-## Getting Started
+MVP of a CRO Report Generator. Crawls an e-commerce URL through Homepage → Category → PDP → Cart → Checkout, runs Claude + PageSpeed analysis, scores it against Baymard guidelines, and renders a branded report.
 
-First, run the development server:
+## Install
+
+```bash
+npm install
+```
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 and paste any e-commerce URL.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API keys (optional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The only external API is Anthropic Claude. The app runs end-to-end without it using deterministic mock findings, so you can demo the pipeline immediately. To enable real Claude analysis, copy `.env.local.example` to `.env.local` and fill in:
 
-## Learn More
+```
+ANTHROPIC_API_KEY=sk-ant-...
+BASE_URL=http://localhost:3000   # used by the PDF route
+```
 
-To learn more about Next.js, take a look at the following resources:
+Performance / Core Web Vitals are measured **locally** by `lib/services/lighthouseLite/` (Puppeteer + CDP throttling + log-normal scoring curves) — no Google PageSpeed Insights dependency.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## In scope (MVP)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 5-page funnel crawl with Puppeteer + stealth
+- Desktop (1440) + mobile (375) screenshots
+- Page detection per spec §3.2.1
+- Add to Cart cascade per spec §3.3 + variant pre-selection §3.4
+- Checkout form fill with test persona — never clicks Place Order
+- Payment method detection (14 methods, spec §5.6.5)
+- Local Lighthouse-lite perf measurement (Puppeteer + CDP throttling) for homepage / PDP / checkout
+- Claude text analysis + Vision Baymard audit per page
+- 6-category scoring (MVP weights, spec §6.2 reweighted to drop 5.7)
+- Bucket 1 (Fix Now) vs Bucket 2 (Platform Limited) classification with Fynd advantages
+- Loading screen with 9 phases polling /api/status
+- Report viewer with score ring, category bars, checkout scorecard, page tabs, issue cards, bucket summary, CTA
+- PDF export (`/api/pdf/[id]`) via headless Chrome against `/report/[id]?print=1`
 
-## Deploy on Vercel
+## Out of scope (deferred)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Brand / collection / search listing pages (spec §5.9.1–5.9.6)
+- Section 5.7 sticky/persistent UI pattern checks (partially via Vision)
+- Share links + 30-day expiry storage
+- PDF cover-page polish, annotated screenshot markers
+- Rate limiting, concurrent crawl orchestration
+- Full 204 Baymard guideline DB (ships ~50 representative)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Smoke test
+
+```
+URL → https://www.allbirds.com
+```
+
+Should crawl 5 pages, detect a handful of payment methods, return a complete report in ~60–90s.

@@ -1,0 +1,43 @@
+# Render Blueprint — Fynd CRO Doctor
+#
+# https://render.com/docs/blueprint-spec
+#
+# To deploy:
+#   1. Push this repo to GitHub (already done if you cloned this).
+#   2. Sign in to render.com with the same GitHub account.
+#   3. New → Blueprint → pick this repo.
+#   4. Render reads this file and provisions the service + persistent disk.
+#   5. (Optional) In the Render dashboard, set the ANTHROPIC_API_KEY env var.
+#
+# The service runs Next.js + Puppeteer in a Docker container, with a 1 GB
+# persistent disk mounted at /app/reports so generated reports survive deploys
+# and restarts.
+
+services:
+  - type: web
+    name: fynd-cro-doctor
+    runtime: docker
+    plan: free                 # 512 MB RAM / 0.1 CPU — fine for demos.
+                               # Bump to "starter" ($7/mo) for production.
+    region: oregon             # Change if you want a different region.
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /         # Landing page returns 200 — good health probe.
+    autoDeploy: true           # Re-deploy on every push to main.
+    disk:
+      name: cro-reports
+      mountPath: /app/reports
+      sizeGB: 1                # Free plan supports up to 1 GB.
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASE_URL
+        sync: false            # Render fills in the public URL automatically
+                               # via the RENDER_EXTERNAL_URL env — see start
+                               # script docs.
+      - key: CRAWL_CONCURRENCY
+        value: "2"
+      - key: REPORT_TTL_HOURS
+        value: "24"
+      - key: ANTHROPIC_API_KEY
+        sync: false            # Set in the Render dashboard, not in git.

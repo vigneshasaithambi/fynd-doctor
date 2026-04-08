@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://baymard.com/premium/guideline-collections/test1",
+    "title": "#100: Display the Hero Carousel With Prominent Indicators – Homepage – Homepage, Category Taxonomy & Main Navigation – Research Catalog – Baymard Premium",
+    "content": "Test content for guideline 100"
+  },
+  {
+    "url": "https://baymard.com/premium/guideline-collections/test2",
+    "title": "#200: Display Variant Swatches Above the Fold – Product Page – Product Page – Research Catalog – Baymard Premium",
+    "content": "Test content for guideline 200"
+  },
+  {
+    "url": "https://baymard.com/premium/guideline-collections/test3",
+    "title": "#300: Provide a Save for Later Feature in the Cart – Cart & Checkout – Cart & Checkout – Research Catalog – Baymard Premium",
+    "content": "Test content for guideline 300"
+  },
+  {
+    "url": "https://baymard.com/premium/guideline-collections/test4",
+    "title": "#400: Always Allow Guest Checkout – Checkout – Cart & Checkout – Research Catalog – Baymard Premium",
+    "content": "Test content for guideline 400"
+  },
+  {
+    "url": "https://baymard.com/premium/guideline-collections/test5",
+    "title": "#500: Filter Interface for Faceted Search – Product Lists & Filtering – Product Lists & Filtering – Research Catalog – Baymard Premium",
+    "content": "Test content for guideline 500"
+  },
+  {
+    "url": "https://baymard.com/premium/guideline-collections/test5dup",
+    "title": "#500: Filter Interface for Faceted Search – Product Lists & Filtering – Product Lists & Filtering – Research Catalog – Baymard Premium",
+    "content": "Duplicate of guideline 500 to test dedup"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-schema.json",
+  "_comment": "Mutation testing focused on critical pure-function modules. Run via `npm run test:mutation` — not on every CI run; reserved for main merges and weekly cron.",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "lib/services/scorer.ts",
+    "lib/services/lighthouseLite/score.ts",
+    "lib/utils/rateLimit.ts",
+    "lib/crawler/queue.ts"
+  ],
+  "thresholds": {
+    "high": 90,
+    "low": 80,
+    "break": 80
+  },
+  "tempDirName": ".stryker-tmp",
+  "ignorePatterns": ["dist", "node_modules", ".next", "reports", "tests/e2e/__screenshots__"],
+  "disableTypeChecks": "lib/**/*.ts"
+}

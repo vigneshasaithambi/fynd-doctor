@@ -33,9 +33,20 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# generated reports
+/reports
+
+# Baymard scrape (~82 MB, not committed)
+/lib/data/baymard-scrape.jsonl
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test artifacts
+/playwright-report
+/test-results
+/.stryker-tmp

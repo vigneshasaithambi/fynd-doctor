@@ -1,0 +1,91 @@
+{
+  "id": "fixture-report-id",
+  "url": "https://fixture.example.com",
+  "domain": "fixture.example.com",
+  "createdAt": "2026-04-08T12:00:00.000Z",
+  "status": "complete",
+  "overallScore": 78,
+  "categoryScores": [
+    { "key": "performance", "label": "Performance", "score": 82, "weight": 0.18 },
+    { "key": "mobile", "label": "Mobile", "score": 70, "weight": 0.12 },
+    { "key": "seo", "label": "SEO", "score": 85, "weight": 0.12 },
+    { "key": "conversion", "label": "Conversion", "score": 68, "weight": 0.18 },
+    { "key": "technical", "label": "Technical", "score": 88, "weight": 0.12 },
+    { "key": "baymardUx", "label": "Baymard UX", "score": 76, "weight": 0.28 }
+  ],
+  "stats": {
+    "totalIssues": 12,
+    "criticalIssues": 2,
+    "bucket1Count": 7,
+    "bucket2Count": 5
+  },
+  "pages": [
+    {
+      "pageType": "homepage",
+      "url": "https://fixture.example.com",
+      "reached": true,
+      "screenshots": {},
+      "findings": [
+        {
+          "id": "f1",
+          "pageType": "homepage",
+          "title": "Hero LCP exceeds 2.5s on mobile",
+          "description": "Largest contentful paint of the hero image is over the recommended threshold.",
+          "severity": "high",
+          "category": "performance",
+          "bucket": "platform-limited",
+          "fyndAdvantage": "Fynd's edge-cached storefront ships sub-2s LCP out of the box on global CDN",
+          "recommendation": "Preload the hero image and serve AVIF."
+        }
+      ]
+    },
+    {
+      "pageType": "category",
+      "url": "https://fixture.example.com/collections/all",
+      "reached": true,
+      "screenshots": {},
+      "findings": []
+    },
+    {
+      "pageType": "pdp",
+      "url": "https://fixture.example.com/products/test",
+      "reached": true,
+      "screenshots": {},
+      "findings": []
+    },
+    {
+      "pageType": "cart",
+      "url": "https://fixture.example.com/cart",
+      "reached": true,
+      "screenshots": {},
+      "findings": []
+    },
+    {
+      "pageType": "checkout",
+      "url": "https://fixture.example.com/checkout",
+      "reached": true,
+      "screenshots": {},
+      "findings": []
+    }
+  ],
+  "checkoutScorecard": {
+    "type": "multi-step",
+    "steps": 3,
+    "guestCheckout": true,
+    "socialLogin": false,
+    "addressAutocomplete": true,
+    "trustBadges": true,
+    "payments": {
+      "cod": true, "netBanking": false, "upi": true, "bnpl": false, "emi": false,
+      "giftCard": false, "paypal": true, "googlePay": true, "applePay": true,
+      "shopPay": true, "creditCard": true, "debitCard": true, "wallet": false, "crypto": false
+    },
+    "paymentCount": 8,
+    "score": 85
+  },
+  "bucketSummary": {
+    "fixNow": [],
+    "platformLimited": []
+  },
+  "execSummary": "fixture.example.com scored 78/100 — average. We surfaced 12 issues across the funnel."
+}

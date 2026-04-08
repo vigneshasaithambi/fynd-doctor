@@ -5,19 +5,42 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:a11y": "playwright test --grep @a11y",
+    "test:mutation": "stryker run",
+    "test:load": "node tests/load/run-all.mjs",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.85.0",
+    "axios": "^1.14.0",
     "next": "16.2.2",
+    "puppeteer": "^24.40.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.59.1",
+    "@stryker-mutator/core": "^8.7.1",
+    "@stryker-mutator/vitest-runner": "^8.7.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/uuid": "^11.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "happy-dom": "^15.11.7",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   }
 }
