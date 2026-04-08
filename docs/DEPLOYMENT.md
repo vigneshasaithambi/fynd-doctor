@@ -4,7 +4,7 @@ Single-click deploy to a free Render instance backed by your GitHub repo.
 
 ## What you get
 
-- A public URL (`https://fynd-cro-doctor.onrender.com` or similar) hosting the landing page, analyzer, report viewer, and PDF export.
+- A public URL (`https://fynd-doctor.onrender.com` or similar) hosting the landing page, analyzer, report viewer, and PDF export.
 - Auto-deploy on every `git push` to `main`.
 - 1 GB persistent disk mounted at `/app/reports/` so generated reports survive restarts and deploys.
 - Free tier: 512 MB RAM / 0.1 CPU. Spins down after 15 min of inactivity (cold start ~30 s on next request).
@@ -24,17 +24,17 @@ This codebase uses Puppeteer + a 300 MB Chromium binary + filesystem storage. Ve
 ### 1. Push the repo to GitHub
 
 ```bash
-cd "/Users/vigneshasaithambi/Fynd Doctor/fynd-cro-doctor"
+cd "/Users/vigneshasaithambi/Fynd Doctor/fynd-doctor"
 
 # Create a public repo and push in one go (uses the existing gh auth)
-gh repo create fynd-cro-doctor --public --source=. --remote=origin --push
+gh repo create fynd-doctor --public --source=. --remote=origin --push
 ```
 
 ### 2. Connect Render to the repo
 
 1. Open https://render.com/login → sign in with **GitHub**.
 2. Click **New** → **Blueprint**.
-3. Pick the `fynd-cro-doctor` repo from the list.
+3. Pick the `fynd-doctor` repo from the list.
 4. Render reads [`render.yaml`](../render.yaml) automatically and shows you the service + disk it will create.
 5. Click **Apply**.
 
@@ -98,6 +98,6 @@ The Dockerfile is portable. To move to Fly.io / Railway / a self-hosted box:
 
 - **Fly.io**: `fly launch --copy-config --dockerfile Dockerfile`, add a 1 GB volume, deploy.
 - **Railway**: connect the GitHub repo, Railway auto-detects the Dockerfile.
-- **Self-hosted**: `docker build -t fynd-cro-doctor .` then `docker run -p 3000:3000 -v $(pwd)/reports:/app/reports fynd-cro-doctor`.
+- **Self-hosted**: `docker build -t fynd-doctor .` then `docker run -p 3000:3000 -v $(pwd)/reports:/app/reports fynd-doctor`.
 
 Same image, same env vars, same persistent volume — none of the platform-specific code lives in `lib/`.

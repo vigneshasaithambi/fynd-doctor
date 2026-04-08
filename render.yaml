@@ -15,7 +15,7 @@
 
 services:
   - type: web
-    name: fynd-cro-doctor
+    name: fynd-doctor
     runtime: docker
     plan: free                 # 512 MB RAM / 0.1 CPU — fine for demos.
                                # Bump to "starter" ($7/mo) for production.
